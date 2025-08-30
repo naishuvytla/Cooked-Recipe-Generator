@@ -1,7 +1,7 @@
-// src/pages/Pantry.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import RecipeCard from "../components/RecipeCard.jsx";
+import JarCard from "../components/JarCard.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
@@ -32,7 +32,7 @@ export default function Pantry() {
         try {
           const body = await res.json();
           if (body?.error) msg = Array.isArray(body.error) ? body.error.join(", ") : body.error;
-        } catch {}
+        } catch { }
         throw new Error(msg);
       }
       try { return await res.json(); } catch { return null; }
@@ -125,79 +125,68 @@ export default function Pantry() {
   const nothingSelected = selectedIds.size === 0;
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-10">
-      <h2 className="text-2xl font-semibold mb-4">Your Pantry</h2>
+    <main className="min-h-screen pt-10 pb-24 px-4">
+      <div className="w-full max-w-2xl mx-auto text-center">
+        <h2 className="text-4xl font-bold mb-5 text-white drop-shadow-lg">Your Pantry</h2>
 
-      <div className="flex items-center gap-2 mb-3">
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-          placeholder="Add an ingredient"
-          className="w-full max-w-md rounded-lg border px-3 py-2"
-        />
-        <button
-          onClick={handleAdd}
-          disabled={!newName.trim() || loading}
-          className={`rounded-lg px-4 py-2 text-white ${
-            !newName.trim() || loading ? "bg-gray-400 cursor-not-allowed" : "bg-gray-900 hover:opacity-90"
-          }`}
-        >
-          Add
-        </button>
-      </div>
+        <div className="w-full max-w-md mx-auto mb-6 flex items-center gap-3 justify-center">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            placeholder="Add an ingredient"
+            className="flex-1 rounded-lg px-4 py-3 bg-white/50 text-black placeholder:text-black"
+          />
+          <button
+            onClick={handleAdd}
+            disabled={!newName.trim() || loading}
+            className={`rounded-lg px-5 py-3 text-white ${!newName.trim() || loading ? "bg-orange-800 cursor-not-allowed" : "bg-gray-900 hover:opacity-90"
+              }`}
+          >
+            Add
+          </button>
+        </div>
 
-      {error && <div className="mb-3 text-sm text-red-600">{error}</div>}
-      {(loading || generating) && <div className="mb-3 text-sm text-gray-600">Working...</div>}
+        {error && <div className="mb-4 text-sm text-red-200">{error}</div>}
+        {(loading || generating) && <div className="mb-4 text-sm text-white/90">Working...</div>}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 mt-4">
-        {ingredients.length === 0 && !loading && (
-          <div className="text-gray-500 col-span-full">
-            No ingredients yet, add your first one above
-          </div>
-        )}
+        <div className="mb-8 flex flex-wrap justify-center gap-6">
+          {ingredients.length === 0 && !loading && (
+            <div className="text-white/90">No ingredients yet, add your first one above.</div>
+          )}
+          {ingredients.map((it) => {
+            const selected = selectedIds.has(it._id);
+            return (
+              <JarCard
+                key={it._id}
+                label={it.name}
+                seed={it._id}
+                selected={selected}
+                onClick={() => toggleSelect(it._id)}
+                onDelete={() => handleDelete(it._id)}
+              />
+            );
+          })}
+        </div>
 
-        {ingredients.map((it) => {
-          const selected = selectedIds.has(it._id);
-          return (
-            <div
-              key={it._id}
-              className={`flex items-center justify-between gap-2 rounded-full border px-3 py-1.5 text-sm select-none cursor-pointer transition
-                ${selected ? "bg-gray-100 ring-2 ring-gray-900 font-medium" : "bg-white hover:bg-gray-50"}`}
-              onClick={() => toggleSelect(it._id)}
-              title={selected ? "Selected" : "Click to select"}
-            >
-              <span className="truncate">{it.name}</span>
-              <button
-                onClick={(e) => { e.stopPropagation(); handleDelete(it._id); }}
-                className="ml-2 text-xs rounded-full border px-2 py-0.5 hover:bg-gray-100"
-                aria-label={`Delete ${it.name}`}
-                title="Delete"
-              >
-                ✕
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mt-8">
-        <button
-          onClick={handleGenerateRecipe}
-          disabled={nothingSelected || loading || generating}
-          className={`rounded-lg px-4 py-2 ${
-            nothingSelected || loading || generating
-              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+        <div className="w-full max-w-md mx-auto">
+          <button
+            onClick={handleGenerateRecipe}
+            disabled={selectedIds.size === 0 || loading || generating}
+            className={`w-full rounded-lg px-6 py-3 ${selectedIds.size === 0 || loading || generating
+              ? "bg-orange-800 text-white cursor-not-allowed"
               : "bg-gray-900 text-white hover:opacity-90"
-          }`}
-          title={nothingSelected ? "Select ingredients first" : "Generate a recipe"}
-        >
-          {generating ? "Generating..." : "Generate Recipe"}
-        </button>
-      </div>
+              }`}
+          >
+            {generating ? "Generating..." : "Generate Recipe"}
+          </button>
+        </div>
 
-      <RecipeCard recipe={recipe} />
+        <div className="mt-10 w-full max-w-xl mx-auto">
+          <RecipeCard recipe={recipe} />
+        </div>
+      </div>
     </main>
   );
 }
