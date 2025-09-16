@@ -19,8 +19,6 @@ https://youtu.be/KaF2EvX65L8
 - Authentication: Clerk (JWT-protected API routes)  
 - External API: Google Gemini for recipe generation  
 
-I spent about 8 hours total on this project
-
 ## How to run locally
 
 1. Clone the repo
